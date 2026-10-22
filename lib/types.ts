@@ -16,7 +16,8 @@ export interface Profile {
   occasion: string;
   budget: string;
   location: string;
-  interests: { name: string; type: Domain }[];
+  // "person" (a chef, author, presenter) is searched untyped: the kit docs list no person urn.
+  interests: { name: string; type: Domain | "person" }[];
   vibes: string[];
 }
 

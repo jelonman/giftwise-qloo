@@ -10,7 +10,7 @@ const EXAMPLES = [
   "My best friend lives in Berlin, obsessed with Studio Ghibli, Tame Impala and ramen. Birthday next week.",
 ];
 
-const LABEL: Record<string, string> = { book: "Book", brand: "Brand", artist: "Music", podcast: "Podcast", movie: "Film", tv_show: "Series", videogame: "Game", place: "Place" };
+const LABEL: Record<string, string> = { book: "Book", brand: "Brand", artist: "Music", podcast: "Podcast", movie: "Film", tv_show: "Series", videogame: "Game", place: "Place", person: "Person" };
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -102,7 +102,7 @@ export default function Home() {
               {profile.interests.map((i) => {
                 const hit = resolved?.entities.find((r) => r.input === i.name);
                 const miss = resolved?.unresolved.includes(i.name);
-                return <span key={i.name} className={"chip " + i.type + (miss ? " miss" : "")} title={hit ? `Matched: ${hit.name}` : miss ? "Not found in Qloo" : "Matching…"}><small>{LABEL[i.type]}</small>{hit?.name ?? i.name}{hit && <u>✓</u>}</span>;
+                return <span key={i.name} className={"chip t-" + i.type + (miss ? " miss" : "")} title={hit ? `Matched: ${hit.name}` : miss ? "Not found in Qloo" : "Matching…"}><small>{LABEL[i.type]}</small>{hit?.name ?? i.name}{hit && <u>✓</u>}</span>;
               })}
             </div>
           </section>

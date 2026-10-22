@@ -4,13 +4,13 @@ import { giftLink } from "./links";
 import { DOMAIN_URN, type AgentEvent, type Candidate, type Domain, type Gift, type Profile, type Resolved } from "./types";
 
 const DOMAINS: Domain[] = ["book", "brand", "artist", "podcast", "movie", "tv_show", "videogame"];
-const VALID = new Set<string>(Object.keys(DOMAIN_URN));
+const VALID = new Set<string>([...Object.keys(DOMAIN_URN), "person"]);
 
 export interface AgentDeps { qloo: Qloo | null; llm?: LlmOptions; emit: (e: AgentEvent) => void }
 
 const PROFILE_SYSTEM = `You read a short description of a person someone wants to buy a gift for.
 Return JSON: {"label": string (how the giver refers to them, e.g. "your sister"), "occasion": string ("" if none), "budget": string ("" if none), "location": string (city, "" if none),
-"interests": [{"name": string (the exact title/artist/brand/place as a catalogue would spell it), "type": one of book|brand|artist|podcast|movie|tv_show|videogame|place}],
+"interests": [{"name": string (the exact title/artist/brand/place as a catalogue would spell it), "type": one of book|brand|artist|podcast|movie|tv_show|videogame|place|person (artist = musicians only; a chef, writer or TV presenter is person)}],
 "vibes": [up to 3 short taste words the text implies, e.g. "cozy", "minimalist"]}.
 Only include things the text names or clearly implies. Never invent titles. Max 8 interests.`;
 
@@ -18,7 +18,7 @@ export function sanitizeProfile(raw: any): Profile {
   const interests = (Array.isArray(raw?.interests) ? raw.interests : [])
     .filter((i: any) => i && typeof i.name === "string" && i.name.trim() && VALID.has(i.type))
     .slice(0, 8)
-    .map((i: any) => ({ name: i.name.trim().slice(0, 80), type: i.type as Domain }));
+    .map((i: any) => ({ name: i.name.trim().slice(0, 80), type: i.type as Domain | "person" }));
   return {
     label: String(raw?.label ?? "them").slice(0, 60),
     occasion: String(raw?.occasion ?? "").slice(0, 60),
@@ -124,7 +124,7 @@ export async function runAgent(text: string, deps: AgentDeps): Promise<void> {
     // 2. Resolve names to Qloo entities: GET /search
     step("resolve", "Matching them in Qloo's taste graph", "running", undefined, "GET /search");
     const found = await Promise.all(profile.interests.map(async (i) => {
-      const r = await qloo.search(i.name, DOMAIN_URN[i.type], 5);
+      const r = await qloo.search(i.name, i.type === "person" ? undefined : DOMAIN_URN[i.type], 5);
       const hit = pickMatch(i.name, resultList(r, "entities"));
       return hit ? { ...hit, type: i.type } : undefined;
     }));

@@ -66,3 +66,10 @@ describe("full agent run with fake Qloo + fake LLM", () => {
     expect(ev.find((e) => e.type === "error")).toMatchObject({ code: "QLOO_AUTH" });
   });
 });
+
+describe("person interests", () => {
+  it("keeps a person (chef, presenter) instead of forcing them into music", () => {
+    const p = sanitizeProfile({ interests: [{ name: "Anthony Bourdain", type: "person" }, { name: "x", type: "nonsense" }] });
+    expect(p.interests).toEqual([{ name: "Anthony Bourdain", type: "person" }]);
+  });
+});
